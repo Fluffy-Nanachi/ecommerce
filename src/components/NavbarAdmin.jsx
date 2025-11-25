@@ -1,27 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import supabase from "../supabase-client";
-import Logo from "../assets/logo.png";
-import Cart from "../assets/cart.png";
 
-function Navbar() {
+function NavbarAdmin() {
   const [session, setSession] = useState(null);
-  const [cartCount, setCartCount] = useState(0); // new state for cart count
   const navigate = useNavigate();
 
   useEffect(() => {
     // Get current session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      if (session) fetchCartCount(session.user.id); // fetch cart count if logged in
     });
 
     // Listen for auth changes
     const { data: listener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session);
-        if (session) fetchCartCount(session.user.id);
-        else setCartCount(0);
       }
     );
 
@@ -29,21 +23,6 @@ function Navbar() {
       listener.subscription.unsubscribe();
     };
   }, []);
-
-  // Fetch total quantity in cart
-  const fetchCartCount = async (userId) => {
-    const { data, error } = await supabase
-      .from("cart")
-      .select("quantity")
-      .eq("user_id", userId);
-    if (error) {
-      console.error(error);
-      setCartCount(0);
-    } else {
-      const total = data.reduce((sum, item) => sum + item.quantity, 0);
-      setCartCount(total);
-    }
-  };
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -54,42 +33,12 @@ function Navbar() {
     <nav className="h-20 bg-pink-900 w-full">
       <div className="flex items-center justify-between py-3 px-20">
         <div className="flex space-x-1 items-center">
-          <img src={Logo} alt="logo" className="h-[50px]" />
+          <img src="src/assets/logo.png" alt="logo" className="h-[50px]" />
           <p className="font-bold text-white text-[30px] font-horizon-like">
-            HANIME
+            HANIME ADMIN
           </p>
         </div>
         <div className="flex items-center space-x-10 ">
-          <button className="font-semibold text-white text-[20px] font-horizon-like ">
-            <Link
-              to="/"
-              className="cursor-pointer hover:bg-pink-300 rounded-lg p-2"
-            >
-              HOME
-            </Link>
-          </button>
-          <button className="font-semibold text-white text-[20px] font-horizon-like ">
-            <Link
-              to="/Products"
-              className="cursor-pointer hover:bg-pink-300 rounded-lg p-2"
-            >
-              PRODUCTS
-            </Link>
-          </button>
-          <button className="relative cursor-pointer hover:bg-pink-300 rounded-lg p-2">
-            <Link to="/Cart">
-              <img
-                src={Cart}
-                alt="cart"
-                className="h-[30px] filter grayscale brightness-200"
-              />
-              {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
-                  {cartCount}
-                </span>
-              )}
-            </Link>
-          </button>
           <div className="space-x-5">
             {!session ? (
               <>
@@ -125,4 +74,4 @@ function Navbar() {
   );
 }
 
-export default Navbar;
+export default NavbarAdmin;
