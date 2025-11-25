@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+.text-glow {
+  text-shadow: 2px 2px 0 black, -2px 2px 0 black, 2px -2px 0 black,
+    -2px -2px 0 black;
+}
+
+.font-horizon-like {
+  font-family: "Jost", sans-serif;
+}
