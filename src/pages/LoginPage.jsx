@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import supabase from "../supabase-client";
+import Logo from "../assets/logo.png";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -57,7 +58,7 @@ function Login() {
       <div className="w-full max-w-4xl flex flex-col lg:flex-row bg-white rounded-2xl shadow-lg overflow-hidden">
         {/* Left side: Logo/Image */}
         <div className="hidden lg:flex w-1/2 flex-col items-center justify-center bg-pink-200 relative">
-          <img src="src/assets/logo.png" alt="logo" className="h-80 w-auto" />
+          <img src={Logo} alt="logo" className="h-80 w-auto" />
           <p className="font-bold text-white text-7xl font-horizon-like absolute mt-70 bottom-10">
             HANIME
           </p>
