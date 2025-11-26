@@ -3,20 +3,27 @@ import { Link, useNavigate } from "react-router";
 import supabase from "../supabase-client";
 import Logo from "../assets/logo.png";
 import Cart from "../assets/cart.png";
+import DefaultAvatar from "../assets/default-avatar.png";
+import { useProfile } from "../context/ProfileContext";
+import ThemeSwitcher from "./ThemeSwitcher";
 
 function Navbar() {
   const [session, setSession] = useState(null);
-  const [cartCount, setCartCount] = useState(0); // new state for cart count
+  const [cartCount, setCartCount] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const { profile } = useProfile();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Get current session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const init = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       setSession(session);
-      if (session) fetchCartCount(session.user.id); // fetch cart count if logged in
-    });
+      if (session) fetchCartCount(session.user.id);
+    };
+    init();
 
-    // Listen for auth changes
     const { data: listener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session);
@@ -25,17 +32,15 @@ function Navbar() {
       }
     );
 
-    return () => {
-      listener.subscription.unsubscribe();
-    };
+    return () => listener.subscription.unsubscribe();
   }, []);
 
-  // Fetch total quantity in cart
   const fetchCartCount = async (userId) => {
     const { data, error } = await supabase
       .from("cart")
       .select("quantity")
       .eq("user_id", userId);
+
     if (error) {
       console.error(error);
       setCartCount(0);
@@ -51,77 +56,138 @@ function Navbar() {
   };
 
   return (
-    <nav className="h-20 bg-pink-900 w-full">
-      <div className="flex items-center justify-between py-3 px-20">
-        <div className="flex space-x-1 items-center">
-          <img src={Logo} alt="logo" className="h-[50px]" />
-          <p className="font-bold text-white text-[30px] font-horizon-like">
-            HANIME
-          </p>
-        </div>
-        <div className="flex items-center space-x-10 ">
-          <button className="font-semibold text-white text-[20px] font-horizon-like ">
-            <Link
-              to="/"
-              className="cursor-pointer hover:bg-pink-300 rounded-lg p-2"
-            >
-              HOME
-            </Link>
-          </button>
-          <button className="font-semibold text-white text-[20px] font-horizon-like ">
-            <Link
-              to="/Products"
-              className="cursor-pointer hover:bg-pink-300 rounded-lg p-2"
-            >
-              PRODUCTS
-            </Link>
-          </button>
-          <button className="relative cursor-pointer hover:bg-pink-300 rounded-lg p-2">
-            <Link to="/Cart">
-              <img
-                src={Cart}
-                alt="cart"
-                className="h-[30px] filter grayscale brightness-200"
-              />
-              {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
-                  {cartCount}
-                </span>
-              )}
-            </Link>
-          </button>
-          <div className="space-x-5">
-            {!session ? (
-              <>
-                <button className="font-horizon-like font-semibold text-white text-[20px]">
-                  <Link
-                    to="/SignUp"
-                    className="cursor-pointer hover:bg-pink-300 rounded-lg p-2"
-                  >
-                    SIGN UP
-                  </Link>
-                </button>
-                <button className="font-horizon-like font-semibold text-white text-[20px]">
-                  <Link
-                    to="/Login"
-                    className="cursor-pointer hover:bg-pink-300 rounded-lg p-2"
-                  >
-                    LOGIN
-                  </Link>
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={handleSignOut}
-                className="font-horizon-like font-semibold text-white text-[20px] cursor-pointer hover:bg-pink-300 rounded-lg p-2"
-              >
-                SIGN OUT
-              </button>
-            )}
-          </div>
+    <div className="navbar bg-pink-900 text-white shadow-sm px-5 md:px-10">
+      {/* Mobile menu button */}
+      <div className="flex-none md:hidden">
+        <button
+          className="btn btn-square btn-ghost"
+          onClick={() => setMenuOpen(!menuOpen)}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            className="inline-block h-6 w-6 stroke-current"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M4 6h16M4 12h16M4 18h16"
+            ></path>
+          </svg>
+        </button>
+      </div>
+
+      {/* Logo and brand */}
+      <div className="flex-1 flex  items-center">
+        <img src={Logo} alt="logo" className="h-12 mr-2" />
+        <span className="text-2xl font-bold font-horizon-like">HANIME</span>
+        <div className="ml-4 hidden md:block">
+          <ThemeSwitcher />
         </div>
       </div>
-    </nav>
+
+      {/* Desktop menu */}
+      <div className="flex-none hidden md:flex items-center space-x-6">
+        <Link className="btn btn-ghost normal-case" to="/">
+          HOME
+        </Link>
+        <Link className="btn btn-ghost normal-case" to="/Products">
+          PRODUCTS
+        </Link>
+        <Link className="btn btn-ghost normal-case" to="/MyOrders">
+          MY ORDERS
+        </Link>
+        <Link className="relative btn btn-ghost normal-case" to="/Cart">
+          <img
+            src={Cart}
+            alt="cart"
+            className="h-6 filter grayscale brightness-200"
+          />
+          {cartCount > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+              {cartCount}
+            </span>
+          )}
+        </Link>
+
+        {!session ? (
+          <>
+            <Link className="btn btn-ghost normal-case" to="/SignUp">
+              SIGN UP
+            </Link>
+            <Link className="btn btn-ghost normal-case" to="/Login">
+              LOGIN
+            </Link>
+          </>
+        ) : (
+          <div className="flex items-center space-x-3">
+            <Link to="/Profile">
+              <img
+                src={profile?.profile_image_url || DefaultAvatar}
+                alt="profile"
+                className="w-10 h-10 rounded-full object-cover border-2 border-white"
+              />
+            </Link>
+            <button
+              onClick={handleSignOut}
+              className="btn btn-ghost normal-case"
+            >
+              SIGN OUT
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Mobile menu dropdown */}
+      {menuOpen && (
+        <div className="absolute top-20 left-0 w-full bg-pink-900 flex flex-col space-y-2 p-4 md:hidden z-50">
+          <Link className="btn btn-ghost w-full" to="/">
+            HOME
+          </Link>
+          <Link className="btn btn-ghost w-full" to="/Products">
+            PRODUCTS
+          </Link>
+          <Link className="btn btn-ghost w-full" to="/my-orders">
+            MY ORDERS
+          </Link>
+          <Link className="btn btn-ghost w-full relative" to="/Cart">
+            Cart{" "}
+            {cartCount > 0 && (
+              <span className="absolute top-0 right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                {cartCount}
+              </span>
+            )}
+          </Link>
+
+          {!session ? (
+            <>
+              <Link className="btn btn-ghost w-full" to="/SignUp">
+                SIGN UP
+              </Link>
+              <Link className="btn btn-ghost w-full" to="/Login">
+                LOGIN
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link className="btn btn-ghost w-full" to="/Profile">
+                Profile
+              </Link>
+              <button onClick={handleSignOut} className="btn btn-ghost w-full">
+                SIGN OUT
+              </button>
+            </>
+          )}
+
+          {/* Mobile theme switcher */}
+          <div className="mt-2">
+            <ThemeSwitcher />
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 

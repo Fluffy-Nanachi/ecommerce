@@ -1,11 +1,36 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router";
 import Navbar from "../components/Navbar";
 import { useCart } from "../context/CartContext";
 
 export default function Cart() {
   const { cartItems, loading, updateQuantity, removeItem, total } = useCart();
+  const navigate = useNavigate();
+  const [selectedItems, setSelectedItems] = useState([]);
 
   if (loading) return <p>Loading cart...</p>;
+
+  const toggleSelectItem = (id) => {
+    setSelectedItems((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
+  const buySelectedItems = () => {
+    if (selectedItems.length === 0) return alert("Select items to buy!");
+    const itemsToBuy = cartItems.filter((item) =>
+      selectedItems.includes(item.id)
+    );
+
+    // Validate stock
+    for (const item of itemsToBuy) {
+      if (item.quantity > item.product.stock)
+        return alert(`Not enough stock for ${item.product.name}`);
+    }
+
+    localStorage.setItem("checkoutItems", JSON.stringify(itemsToBuy));
+    navigate("/checkout");
+  };
 
   return (
     <div className="min-h-screen bg-base-200">
@@ -21,6 +46,13 @@ export default function Cart() {
                 key={item.id}
                 className="flex items-center gap-4 bg-white p-4 rounded-lg shadow mb-4"
               >
+                <input
+                  type="checkbox"
+                  checked={selectedItems.includes(item.id)}
+                  onChange={() => toggleSelectItem(item.id)}
+                  disabled={item.product.stock === 0}
+                  className="checkbox checkbox-primary"
+                />
                 <img
                   src={item.product.image}
                   alt={item.product.name}
@@ -46,12 +78,13 @@ export default function Cart() {
                     <button
                       className="btn btn-sm"
                       onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                      disabled={item.quantity >= item.product.stock}
                     >
                       +
                     </button>
                   </div>
                   <button
-                    className="btn btn-error btn-sm"
+                    className="btn btn-error btn-sm mt-2"
                     onClick={() => removeItem(item.id)}
                   >
                     Remove
@@ -61,7 +94,9 @@ export default function Cart() {
             ))}
             <div className="mt-6 flex justify-between items-center">
               <p className="text-xl font-bold">Total: ₱{total}</p>
-              <button className="btn btn-primary">Buy Now</button>
+              <button className="btn btn-primary" onClick={buySelectedItems}>
+                Buy Selected
+              </button>
             </div>
           </>
         )}

@@ -45,6 +45,10 @@ export const CartProvider = ({ children }) => {
   }, []);
 
   const addToCart = async (product, quantity = 1) => {
+    if (quantity > product.stock) {
+      return alert("Not enough stock!");
+    }
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -69,7 +73,7 @@ export const CartProvider = ({ children }) => {
       return alert("Failed to add to cart");
     }
 
-    fetchCart(); // update live cart
+    fetchCart();
     alert("Added to cart!");
   };
 
@@ -82,6 +86,16 @@ export const CartProvider = ({ children }) => {
   const removeItem = async (cartItemId) => {
     await supabase.from("cart").delete().eq("id", cartItemId);
     fetchCart();
+  };
+
+  const clearCart = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
+    await supabase.from("cart").delete().eq("user_id", user.id);
+    setCartItems([]);
   };
 
   const total = cartItems.reduce(
@@ -97,6 +111,7 @@ export const CartProvider = ({ children }) => {
         addToCart,
         updateQuantity,
         removeItem,
+        clearCart, // ✅ now available
         total,
         fetchCart,
       }}

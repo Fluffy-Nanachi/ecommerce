@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import supabase from "../supabase-client";
 import NavbarAdmin from "../components/NavbarAdmin";
 
 export default function AdminDashboard() {
+  const navigate = useNavigate(); // <-- Added
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -35,19 +37,15 @@ export default function AdminDashboard() {
 
     const formData = new FormData();
     formData.append("file", form.image_file);
-    formData.append("upload_preset", "unsigned_preset"); // replace with your unsigned preset
+    formData.append("upload_preset", "unsigned_preset");
 
     try {
       const res = await fetch(
-        "https://api.cloudinary.com/v1_1/dgtqkxsnp/image/upload", // replace with your cloud name
-        {
-          method: "POST",
-          body: formData,
-        }
+        "https://api.cloudinary.com/v1_1/dgtqkxsnp/image/upload",
+        { method: "POST", body: formData }
       );
-
       const data = await res.json();
-      return data.secure_url; // URL to store in Supabase
+      return data.secure_url;
     } catch (err) {
       console.error(err);
       alert("Image upload failed!");
@@ -55,7 +53,6 @@ export default function AdminDashboard() {
     }
   };
 
-  // Add product
   const addProduct = async () => {
     const imageUrl = await uploadImage();
     if (!imageUrl) return;
@@ -76,7 +73,6 @@ export default function AdminDashboard() {
       return;
     }
 
-    // Reset form
     setForm({
       name: "",
       price: "",
@@ -88,14 +84,12 @@ export default function AdminDashboard() {
     fetchProducts();
   };
 
-  // Delete product
   const deleteProduct = async (id) => {
     const { error } = await supabase.from("products").delete().eq("id", id);
     if (error) console.error(error);
     else fetchProducts();
   };
 
-  // Edit product
   const editProduct = async (product) => {
     const newName = prompt("New name", product.name);
     const newPrice = prompt("New price", product.price);
@@ -120,12 +114,20 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-base-200">
-      <div className="">
-        <NavbarAdmin />
-      </div>
+      <NavbarAdmin />
 
       <div className="p-6 max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+
+          {/* Button to go to Admin Orders */}
+          <button
+            className="btn btn-primary"
+            onClick={() => navigate("/admin/orders")} // <-- Navigate to orders page
+          >
+            View Orders
+          </button>
+        </div>
 
         {/* Add Product Form */}
         <div className="card bg-base-100 shadow-xl p-6 mb-8">

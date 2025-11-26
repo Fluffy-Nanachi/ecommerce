@@ -10,6 +10,12 @@ import AdminPage from "./pages/AdminPage.jsx";
 import AdminRoute from "./components/AdminRoute.jsx";
 import ProductDetails from "./pages/ProductDetails.jsx";
 import { CartProvider } from "./context/CartContext";
+import Profile from "./pages/Profile.jsx";
+import { ProfileProvider } from "./context/ProfileContext.jsx";
+import ResetPassword from "./pages/ResetPassword.jsx";
+import AdminOrders from "./pages/AdminOrders";
+import Checkout from "./pages/Checkout";
+import MyOrders from "./pages/MyOrders";
 
 const router = createBrowserRouter([
   {
@@ -28,8 +34,14 @@ const router = createBrowserRouter([
     path: "/Products",
     element: <Products />,
   },
+
+  { path: "/checkout", element: <Checkout /> },
+  { path: "/MyOrders", element: <MyOrders /> },
+  { path: "/reset-password", element: <ResetPassword /> },
   { path: "Cart", element: <Cart /> },
   { path: "/Products/:id", element: <ProductDetails /> },
+  { path: "/Profile", element: <Profile /> },
+  { path: "/admin/orders", element: <AdminOrders /> },
   {
     path: "/admin",
     element: (
@@ -43,7 +55,9 @@ const router = createBrowserRouter([
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <CartProvider>
-      <RouterProvider router={router} />
+      <ProfileProvider>
+        <RouterProvider router={router} />
+      </ProfileProvider>
     </CartProvider>
   </StrictMode>
 );

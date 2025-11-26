@@ -36,16 +36,29 @@ export default function ThemeSwitcher() {
   const [currentTheme, setCurrentTheme] = useState("light");
 
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", currentTheme);
-  }, [currentTheme]);
+    // Load theme from localStorage on mount
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme && themes.includes(savedTheme)) {
+      setCurrentTheme(savedTheme);
+      document.documentElement.setAttribute("data-theme", savedTheme);
+    } else {
+      document.documentElement.setAttribute("data-theme", currentTheme);
+    }
+  }, []);
+
+  const handleChange = (e) => {
+    const newTheme = e.target.value;
+    setCurrentTheme(newTheme);
+    document.documentElement.setAttribute("data-theme", newTheme);
+    localStorage.setItem("theme", newTheme); // Persist selection
+  };
 
   return (
-    <div className=" flex items-center">
-      <label className="mr-2 font-bold .font-horizon-like ">Theme:</label>
+    <div className="flex items-center">
       <select
         value={currentTheme}
-        onChange={(e) => setCurrentTheme(e.target.value)}
-        className="select .font-horizon-like select-bordered cursor-pointer"
+        onChange={handleChange}
+        className="select bg-white text-black select-bordered cursor-pointer"
       >
         {themes.map((theme) => (
           <option key={theme} value={theme}>
